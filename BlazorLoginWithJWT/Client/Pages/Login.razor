@@ -1,0 +1,69 @@
+﻿@page "/login"
+@layout LoginLayout
+@inject IJSRuntime js
+@inject NavigationManager navigation
+@inject IAuthService authService
+
+<div class="card">
+    <div class="card-body my-2">
+        <h3>Login</h3>
+        <hr />
+        <EditForm Model="loginModel" OnValidSubmit="SubmitHandlerAsync">
+            <DataAnnotationsValidator />
+            <div class="form-group">
+                <label for="email">Email</label>
+                <InputText @bind-Value="loginModel.Email" class="form-control" id="email" />
+                <ValidationMessage For="()=>loginModel.Email" />
+            </div>
+            <div class="form-group">
+                <label for="pw">Password</label>
+                <InputPassword @bind-Value="loginModel.Password" class="form-control" id="pw" />
+                <ValidationMessage For="()=>loginModel.Password" />
+            </div>
+
+            @if (IsSubmit)
+            {
+                <button class="btn btn-primary btn-block" type="button" disabled>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="sr-only">Loading...</span>
+                </button>
+            }
+            else
+            {
+                <button class="btn btn-primary btn-block">Submit</button>
+            }
+        </EditForm>
+    </div>
+</div>
+
+@code {
+
+    private bool IsSubmit = false;
+
+    private LoginModel loginModel = new LoginModel();
+
+    private async Task SubmitHandlerAsync()
+    {
+        //Console.WriteLine($"Email：{loginModel.Email} / Password：{loginModel.Password}");
+
+        IsSubmit = true;
+
+        UserInfo userInfo = new UserInfo()
+        {
+            Email = loginModel.Email,
+            Password = loginModel.Password
+        };
+
+        bool result = await authService.LoginAsync(userInfo);
+        if (result)
+        {
+            navigation.NavigateTo("/");
+        }
+        else
+        {
+            await js.InvokeVoidAsync("alert", "登入失敗");
+        }
+
+        IsSubmit = false;
+    }
+}
